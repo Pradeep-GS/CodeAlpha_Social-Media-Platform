@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+
+:root{
+    --drop--shadow:rgba(0, 0, 0, 0.45) 0px 25px 20px -20px;
+    --drop--shadow2:rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
