@@ -21,13 +21,16 @@ const MyProfilePage = () => {
             toast.error("Error fetching user posts");
         }
     }
+    const navigate = (id)=>{
+        window.location.href=`/post/${id}`
+    }
     const getUserDetails = async () => {
         try {
             const response = await api.get('/user/getuser');
             setDatas(response.data.user);
             console.log(response.data.post);
         } catch (error) {
-            toast.error("Error fetching user details");
+            toast.error(error.response?.data?.message || error.message);
         }
     }
     useEffect(() => {
@@ -71,7 +74,7 @@ const MyProfilePage = () => {
                         </div>
                     </div>
                 </div>
-                <div className='w-full aspect-square bg-gray-100'>
+                <div className='w-full aspect-square bg-gray-100' onClick={() => {navigate(post._id)}}>
                     <img 
                         src={post.post}
                         alt="Post"

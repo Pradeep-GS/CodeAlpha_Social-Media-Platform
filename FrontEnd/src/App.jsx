@@ -9,6 +9,7 @@ import ProfileUpload from "./components/ProfileUpload";
 import ProfileEdit from "./components/ProfileEdit";
 import UploadPost from "./Pages/UploadPost";
 import OtherProfile from "./Pages/OtherProfile";
+import ViewPost from "./components/ViewPost";
 const router = createBrowserRouter([
   {
     path: "/login",
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
       {path:"profile/edit", element: <ProfileEdit />},
       {path:"add-post", element: <UploadPost/>},
       {path:"otherprofile/:id", element:<OtherProfile/> },
+      {path:"post/:id", element:<ViewPost/> },
     ],
   },
 ]);

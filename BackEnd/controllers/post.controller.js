@@ -52,12 +52,14 @@ const getAllPosts = async(req,res)=>{
 const getPostById = async(req,res)=>{
     try {
         const postId = req.params.id
-        const post = await Post.findById(postId)
+        const post = await Post.findById(req.params.id)
+      .populate("user", "username profilePic")
+      .populate("comments.user", "username profilePic")
+      .populate("likes", "username profilePic");
         if(!post)
         {
             return res.status(404).json({success:false,message:"Post Not Found"})
         }
-        await post.populate("user","username profilePic").populate('comments.user', 'username profilePic').populate('likes', 'username profilePic')
         return res.status(200).json({success:true,post:post})
     } 
     catch (e) 
@@ -66,6 +68,7 @@ const getPostById = async(req,res)=>{
         return res.status(500).json({success:false,message:"Server Side Issues"})
     }
 }
+
 const getAllUserPosts = async(req,res)=>{
     try {
         const userId = req.user.userId
