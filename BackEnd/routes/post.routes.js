@@ -5,7 +5,6 @@ const authMiddleware = require("../middilewars/auth.middleware")
 const { uploadPost } = require('../middilewars/upload.middleware');
 
 routes.post("/newpost",authMiddleware,uploadPost.single('image'),createPost)
-routes.get("/",getAllPosts)
 routes.get("/my-post",authMiddleware,getAllUserPosts)
 routes.get("/:id",getPostById)
 routes.delete("/:id",authMiddleware,deletePost)

@@ -107,7 +107,6 @@ const userLogIn = async(req,res)=>{
     }
 }
 
-
 const updateUser = async (req,res) => {
     try
     {
@@ -176,6 +175,7 @@ const getUserDetails = async(req,res)=>{
             _id: user._id,
             username: user.username,
             name: user.name,
+            email:user.email,
             profilePic: user.profilePic,
             bio: user.bio,
             followersCount: followersCount,
@@ -298,6 +298,7 @@ const getSelfDetails = async(req,res)=>{
             _id: user._id,
             username: user.username,
             name: user.name,
+            email:user.email,
             profilePic: user.profilePic,
             bio: user.bio,
             createdAt: user.createdAt,

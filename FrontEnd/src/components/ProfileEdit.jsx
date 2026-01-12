@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUser, FiMail, FiCamera, FiSave, FiArrowLeft } from 'react-icons/fi';
+import { FiUser, FiMail, FiCamera, FiSave, FiArrowLeft, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import api from '../api';
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
-  
+  const [showPassword, setShowPassword] = useState(false);
   const [userData, setUserData] = useState({
-    name: 'Pradeep G.S',
-    username: '_editor_pradeep',
-    email: 'pradeep@example.com',
-    bio: 'Frontend Developer • Photographer • Traveler\n📍 Chennai, India',
-    website: 'https://pradeepgs.me',
-    gender: 'Male',
-    phone: '+91 9876543210'
+    name: '',
+    username: '',
+    email: '',
+    bio: '',
+    profileImage: ''
   });
+  const [password, setPassword] = useState('');
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -23,26 +24,81 @@ const ProfileEdit = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result);
+        setUserData(prev => ({ ...prev, profileImage: file }));
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const getUserDetails = async () => {
+    try {
+      const response = await api.get('/user/getuser');
+      const user = response.data.user;
+      setUserData({
+        name: user.name || '',
+        username: user.username || '',
+        email: user.email || '',
+        bio: user.bio || '',
+        profilePic: user.profilePic || ''
+      });
+      console.log(user.email);
+      if (user.profilePic) {
+        setPreviewUrl(user.profilePic);
+      }
+    } catch (error) {
+      console.log(error.response?.data?.message || error.message);
+      toast.error("Error fetching user details");
+    }
+  }
+
+  useEffect(() => {
+    getUserDetails();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      console.log('Updated data:', userData);
+    try {
+      if (userData.profileImage instanceof File) {
+        const profileFormData = new FormData();
+        profileFormData.append('image', userData.profileImage);
+        profileFormData.append('bio', userData.bio || '');
+        
+        await api.put('/user/upload-profile', profileFormData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }
+      
+      const updateData = {
+        name: userData.name,
+        username: userData.username,
+        email: userData.email,
+        bio: userData.bio
+      };
+      
+      if (password) {
+        updateData.password = password;
+      }
+
+      const response = await api.put('/user/update', updateData);
+
+      toast.success('Profile updated successfully!');
       navigate('/profile');
+    } 
+    catch (error) {
+      console.log(error.response?.data?.message || error.message);
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 pt-20 px-4">
-      <div className="max-w-4xl mx-auto">
-        
+      <div className="max-w-4xl mx-auto h-full">    
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <button
@@ -64,7 +120,7 @@ const ProfileEdit = () => {
               <div className="relative">
                 <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl overflow-hidden">
                   <img
-                    src={previewUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop"}
+                    src={userData.profilePic}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
@@ -133,31 +189,28 @@ const ProfileEdit = () => {
                 </div>
               </div>
 
-              {/* Phone */}
+              {/* Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone
+                  Password (leave blank to keep current)
                 </label>
-                <input
-                  type="tel"
-                  value={userData.phone}
-                  onChange={(e) => setUserData({...userData, phone: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                />
-              </div>
-
-              {/* Website */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <input
-                  type="url"
-                  value={userData.website}
-                  onChange={(e) => setUserData({...userData, website: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  placeholder="https://"
-                />
+                <div className="relative">
+                  <FiLock className="absolute left-3 top-3 text-gray-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
+                    placeholder="Enter new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
               </div>
 
               {/* Bio */}
@@ -171,9 +224,10 @@ const ProfileEdit = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none"
                   rows="4"
                   placeholder="Tell your story..."
+                  maxLength={150}
                 />
                 <div className="text-right text-sm text-gray-500 mt-1">
-                  {userData.bio.length}/150 characters
+                  {userData.bio?.length || 0}/150 characters
                 </div>
               </div>
 
@@ -191,7 +245,7 @@ const ProfileEdit = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-3 bg-linear-to-r from-purple-600 to-pink-500 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center"
+                className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center"
               >
                 <FiSave className="mr-2" />
                 {loading ? 'Saving...' : 'Save Changes'}
