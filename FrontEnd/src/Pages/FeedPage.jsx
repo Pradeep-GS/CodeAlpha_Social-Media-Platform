@@ -5,10 +5,12 @@ const FeedPage = () => {
   const [data,setData] = useState([]);
   const fetchPosts = async () => {
     try { 
-      const response = await api.get('/post/');
+      const response = await api.get('/post/feed');
       setData(response.data.posts);
       console.log(response.data);
-    } catch (error) { }
+    } catch (error) {
+      console.log(error.response?.data?.message || error.message);
+     }
   }
   useEffect(() => { 
     fetchPosts();

@@ -36,6 +36,7 @@ const createNewAccount = async (req,res) => {
         return res.status(500).json({success:false,message:"Server Side Issues"})
     }
 }
+
 const uploadProfilePicture = async (req, res) => {
     try {
         const userId = req.user.userId;  // Already string
@@ -83,6 +84,7 @@ const uploadProfilePicture = async (req, res) => {
         });
     }
 };
+
 const userLogIn = async(req,res)=>{
     try {
         const {username,password} = req.body;
@@ -221,6 +223,7 @@ const followUser = async(req,res)=>{
         return res.status(500).json({success: false,message: "Server error"});
     }
 }
+
 const unfollowUser = async(req,res)=>{
     try {
         const ourUserId = req.user;
@@ -252,6 +255,7 @@ const unfollowUser = async(req,res)=>{
         return res.status(500).json({success: false,message: "Server error"});
     }
 }
+
 const getFollowers = async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -268,6 +272,7 @@ const getFollowers = async (req, res) => {
         return res.status(500).json({success: false,message: "Server error"});
     }
 };
+
 const getFollowing = async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -312,4 +317,17 @@ const getSelfDetails = async(req,res)=>{
         return res.status(500).json({success:true,message:"Server Side Issues"})
     }
 }
-module.exports = {createNewAccount,userLogIn,updateUser,getUserDetails,followUser,unfollowUser,getFollowers,getFollowing,uploadProfilePicture,getSelfDetails}
+const deleteUser = async (req, res) => {
+    try {
+        const userId = req.user.userId; 
+        const user = await User.findByIdAndDelete(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        return res.status(200).json({ success: true, message: "User deleted successfully" });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ success: false, message: "Server Side Issues" });
+    }
+} 
+module.exports = {createNewAccount,userLogIn,updateUser,getUserDetails,followUser,unfollowUser,getFollowers,getFollowing,uploadProfilePicture,getSelfDetails,deleteUser}

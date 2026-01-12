@@ -6,11 +6,11 @@ const { uploadPost } = require('../middilewars/upload.middleware');
 
 routes.post("/newpost",authMiddleware,uploadPost.single('image'),createPost)
 routes.get("/my-post",authMiddleware,getAllUserPosts)
+routes.get("/feed", getAllPosts)
 routes.get("/:id",getPostById)
 routes.delete("/:id",authMiddleware,deletePost)
 routes.put("/:id/likeToggle",authMiddleware,likeUnlikePost)
 routes.post("/:id/comment",authMiddleware,addComment)
 routes.delete("/:commentId/comment",authMiddleware,deleteComment)
-routes.get('/feed', authMiddleware, getPersonalizedFeed);
 
 module.exports=routes
