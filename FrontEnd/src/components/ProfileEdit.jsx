@@ -245,7 +245,7 @@ const ProfileEdit = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center"
+                className="px-8 py-3 bg-linear-to-r from-purple-600 to-pink-500 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center"
               >
                 <FiSave className="mr-2" />
                 {loading ? 'Saving...' : 'Save Changes'}
