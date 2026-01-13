@@ -192,69 +192,111 @@ const getUserDetails = async(req,res)=>{
     }
 }
 
-const followUser = async(req,res)=>{
-    try {
-        const ourUserId = req.user.userId
-        const targetUserId = req.params.userId;
-        
-        if (ourUserId === targetUserId) {
-            return res.status(400).json({success: false, message: "Cannot follow yourself" });
-        }
-        
-        const targetUser = await User.findById(targetUserId);
-        const selfUser = await User.findById(ourUserId);
-        
-        const isAlreadyFollowing = selfUser.following.includes(targetUserId);
-        
-        if (isAlreadyFollowing) {
-            return res.status(400).json({success: false,message: "Already following this user"});
-        }
+const followUser = async (req, res) => {
+  try {
+    const ourUserId = req.user.userId;
+    const targetUserId = req.params.userId;
 
-        selfUser.following.push(targetUserId);
-        targetUser.followers.push(ourUserId);
-
-        await selfUser.save();
-        await targetUser.save();
-        
-        return res.status(200).json({success: true,message: "Successfully followed user",followingCount: selfUser.following.length,followersCount: targetUser.followers.length});
-        
-    } catch (e) {
-        console.log(e);
-        return res.status(500).json({success: false,message: "Server error"});
+    if (ourUserId === targetUserId) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot follow yourself",
+      });
     }
-}
 
-const unfollowUser = async(req,res)=>{
-    try {
-        const ourUserId = req.user;
-        const targetUserId = req.params.userId;
+    const [selfUser, targetUser] = await Promise.all([
+      User.findById(ourUserId),
+      User.findById(targetUserId),
+    ]);
 
-        if (ourUserId === targetUserId) {
-            return res.status(400).json({success: false, message: "Cannot unfollow yourself" });
-        }
-        
-        const targetUser = await User.findById(targetUserId);
-        const selfUser = await User.findById(ourUserId);
-        
-        const isFollowing = selfUser.following.includes(targetUserId);
-        
-        if (!isFollowing) {
-            return res.status(400).json({success: false,message: "Not following this user"});
-        }
-
-        selfUser.following.pull(targetUserId);
-        targetUser.followers.pull(ourUserId);
-
-        await selfUser.save();
-        await targetUser.save();
-        
-        return res.status(200).json({success: true,message: "Successfully unfollowed user",followingCount: selfUser.following.length,followersCount: targetUser.followers.length});
-        
-    } catch (e) {
-        console.log(e);
-        return res.status(500).json({success: false,message: "Server error"});
+    if (!selfUser || !targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
-}
+
+    if (selfUser.following.includes(targetUserId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Already following this user",
+      });
+    }
+
+    selfUser.following.push(targetUserId);
+    targetUser.followers.push(ourUserId);
+
+    await Promise.all([selfUser.save(), targetUser.save()]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully followed user",
+      followingCount: selfUser.following.length,
+      followersCount: targetUser.followers.length,
+    });
+
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+
+const unfollowUser = async (req, res) => {
+  try {
+    const ourUserId = req.user.userId;
+    const targetUserId = req.params.userId;
+
+    if (ourUserId === targetUserId) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot unfollow yourself",
+      });
+    }
+
+    const [selfUser, targetUser] = await Promise.all([
+      User.findById(ourUserId),
+      User.findById(targetUserId),
+    ]);
+
+    if (!selfUser || !targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!selfUser.following.includes(targetUserId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Not following this user",
+      });
+    }
+
+    selfUser.following.pull(targetUserId);
+    targetUser.followers.pull(ourUserId);
+
+    await Promise.all([selfUser.save(), targetUser.save()]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully unfollowed user",
+      followingCount: selfUser.following.length,
+      followersCount: targetUser.followers.length,
+    });
+
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 
 const getFollowers = async (req, res) => {
     try {
@@ -330,4 +372,51 @@ const deleteUser = async (req, res) => {
         return res.status(500).json({ success: false, message: "Server Side Issues" });
     }
 } 
-module.exports = {createNewAccount,userLogIn,updateUser,getUserDetails,followUser,unfollowUser,getFollowers,getFollowing,uploadProfilePicture,getSelfDetails,deleteUser}
+
+const getOtherUserDetails = async (req, res) => {
+    try {
+        const identifier = req.params.userId;
+        
+        // Check if the identifier is a valid MongoDB ObjectId
+        let user;
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            // If it's a valid ObjectId, find by ID
+            user = await User.findById(identifier);
+        } else {
+            // If not, assume it's a username
+            user = await User.findOne({ username: identifier });
+        }
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        
+        const safeUser = {
+            _id: user._id,
+            username: user.username,
+            name: user.name,
+            profilePic: user.profilePic,
+            bio: user.bio,
+            createdAt: user.createdAt,
+            followersCount: user.followers.length,
+            followingCount: user.following.length
+        };
+        
+        return res.status(200).json({
+            success: true,
+            user: safeUser
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+};
+
+
+module.exports = {createNewAccount,userLogIn,updateUser,getUserDetails,followUser,unfollowUser,getFollowers,getFollowing,uploadProfilePicture,getSelfDetails,deleteUser,getOtherUserDetails}

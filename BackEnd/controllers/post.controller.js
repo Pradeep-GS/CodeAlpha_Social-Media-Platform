@@ -248,5 +248,44 @@ const getPersonalizedFeed = async (req, res) => {
         return res.status(500).json({success: false,message: "Server error"});
     }
 };
+// In your backend post controller
+// In post.controller.js
+const getUserPosts = async (req, res) => {
+    try {
+        const identifier = req.params.userId;
+        
+        // Check if the identifier is a valid MongoDB ObjectId
+        let user;
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            // If it's a valid ObjectId, find by ID
+            user = await User.findById(identifier);
+        } else {
+            // If not, assume it's a username
+            user = await User.findOne({ username: identifier });
+        }
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        
+        const posts = await Post.find({ user: user._id })
+            .populate('user', 'username name profilePic')
+            .sort({ createdAt: -1 });
+            
+        return res.status(200).json({
+            success: true,
+            posts
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+};
 
-module.exports = {createPost,getAllPosts,getPostById,getAllUserPosts,deletePost,likeUnlikePost,addComment,deleteComment,getPersonalizedFeed}
+module.exports = {createPost,getAllPosts,getUserPosts,getPostById,getAllUserPosts,deletePost,likeUnlikePost,addComment,deleteComment,getPersonalizedFeed}

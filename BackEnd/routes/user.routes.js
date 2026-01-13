@@ -1,6 +1,6 @@
 const express = require("express")
 const routes = express.Router()
-const {createNewAccount,userLogIn,updateUser,getUserDetails,followUser,unfollowUser,getFollowers,getFollowing,uploadProfilePicture,getSelfDetails,deleteUser} = require("../controllers/user.controller")
+const {createNewAccount,userLogIn,updateUser,getUserDetails,followUser,unfollowUser,getFollowers,getFollowing,uploadProfilePicture,getSelfDetails,deleteUser,getOtherUserDetails} = require("../controllers/user.controller")
 const authMiddleware = require("../middilewars/auth.middleware")
 const { uploadProfile } = require('../middilewars/upload.middleware');
 
@@ -15,4 +15,5 @@ routes.get('/:userId/followers', getFollowers);
 routes.get('/:userId/following', getFollowing);
 routes.get("/getuser",authMiddleware,getSelfDetails)
 routes.delete("/delete",authMiddleware,deleteUser)
+routes.get('/getuser/:userId', getOtherUserDetails);
 module.exports=routes
