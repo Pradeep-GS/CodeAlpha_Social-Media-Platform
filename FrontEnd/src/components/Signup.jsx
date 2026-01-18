@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import api from '../api';
+import { toast } from 'react-toastify';
 const Signup = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -21,14 +22,14 @@ const Signup = () => {
       const message = response.data.message;
       setLoading(false);
       if(response.data.success){
-        alert(message);
+        toast.success(message);
         navigate('/login');
       } else {
         alert(message);
       }
     }
     catch(err){
-      console.error('Signup error:', err.response.data.message);
+      toast.error(err.response.data.message);
       setLoading(false);
     }
   };

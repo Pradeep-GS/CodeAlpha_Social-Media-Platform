@@ -16,7 +16,7 @@ const FeedPage = () => {
     fetchPosts();
   }, [])
   return (
-    <div className='mt-15'>
+    <div className='mt-15 pb-12'>
       {data.map((post)=>
         <Post key={post.id} data={post} />
       )}
